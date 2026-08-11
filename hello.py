@@ -1,34 +1,44 @@
-from flask import Flask, abort, request, make_response, redirect
+from flask import Flask, render_template, request
+from flask_bootstrap import Bootstrap
+from flask_moment import Moment
+
+from datetime import datetime
+
 
 app = Flask(__name__)
 
+bootstrap = Bootstrap(app)
+moment = Moment(app)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
+
 @app.route('/')
-def hello_world():
-    return "<h1>Hello World!</h1> <b><h2>Disciplina PTBDSWS</h2>"
+def index():
+	return render_template('index.html', current_time=datetime.utcnow(), name='Joshua Merces')
+
 
 @app.route('/user/<name>')
 def user(name):
-    return '<h1>Hello, {}!</h1>'.format(name)
+    return render_template('user.html', name=name)
 
-@app.route('/contextorequisicao')
-def contextorequisicao():
+
+@app.route('/contextorequisicao/<name>')
+def contextorequisicao(name):
     user_agent = request.headers.get('User-Agent')
-    return '<p>Your browser is {}</p>'.format(user_agent)
+    remote_ip = request.remote_addr
+    host = request.host
 
-@app.route('/codigostatusdiferente')
-def badrequest():
-    abort(400)
-
-@app.route('/objetorespotas')
-def objeto_resposta():
-    resp = make_response('<h1>This document carries a cookie</h1>')
-    resp.set_cookie('nome_cookie', 'valor')
-    return resp
-
-@app.route('/redirecionamento')
-def redirecionar():
-    return redirect('https://ptb.ifsp.edu.br')
-
-@app.route('/abortar')
-def abortar():
-    abort(404)
+    return render_template(
+        'contextorequisicao.html',
+        name=name,
+        user_agent=user_agent,
+        remote_ip=remote_ip,
+        host=host
+    )
